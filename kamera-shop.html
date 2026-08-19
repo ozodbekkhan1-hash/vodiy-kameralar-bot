@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Vodiy Kameralar — Hikvision / EZVIZ kameralar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3F5F7;
+    --surface:#FFFFFF;
+    --surface-2:#EDF0F3;
+    --navy:#0F2A43;
+    --navy-dark:#0A1E31;
+    --navy-soft:#E7ECF1;
+    --osd-green:#28D67C;
+    --osd-green-deep:#149a58;
+    --red:#E5484D;
+    --text:#16202B;
+    --text-soft:#5B6672;
+    --border:#E1E6EB;
+    --radius:16px;
+    --shadow: 0 1px 2px rgba(15,42,67,.04), 0 8px 24px -12px rgba(15,42,67,.18);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;}
+  ::selection{background:var(--osd-green); color:#06210f;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+
+  #app{max-width:480px; margin:0 auto; min-height:100vh; background:var(--bg); position:relative; padding-bottom:92px;}
+
+  /* ---------- HEADER ---------- */
+  header.topbar{
+    background:
+      radial-gradient(circle at 18% 20%, rgba(40,214,124,.10), transparent 40%),
+      linear-gradient(180deg, var(--navy) 0%, var(--navy-dark) 100%);
+    color:#fff; padding:18px 18px 20px; position:relative; overflow:hidden;
+  }
+  header.topbar::after{
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.10;
+    background-image: repeating-linear-gradient(180deg, #fff 0 1px, transparent 1px 4px);
+  }
+  .topbar-row{display:flex; align-items:center; justify-content:space-between; position:relative; z-index:1;}
+  .brand{display:flex; align-items:center; gap:9px;}
+  .brand-mark{width:32px;height:32px;border-radius:9px;background:var(--osd-green); display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px rgba(40,214,124,.18);}
+  .brand-mark svg{width:18px;height:18px;}
+  .brand-name{font-family:'Space Grotesk'; font-weight:700; font-size:17px; letter-spacing:.2px;}
+  .brand-tag{font-size:10.5px; color:#9FB4C6; letter-spacing:.4px; margin-top:1px;}
+  .cart-btn{position:relative; width:40px;height:40px;border-radius:11px;background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); display:flex;align-items:center;justify-content:center; cursor:pointer;}
+  .cart-btn svg{width:19px;height:19px; stroke:#fff;}
+  .cart-count{position:absolute; top:-6px; right:-6px; background:var(--red); color:#fff; font-size:10px; font-weight:700; min-width:17px; height:17px; border-radius:9px; display:flex; align-items:center; justify-content:center; padding:0 4px; font-family:'JetBrains Mono'; border:2px solid var(--navy-dark);}
+  .hero-line{position:relative; z-index:1; margin-top:16px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;}
+  .hero-line .rec{display:inline-flex; align-items:center; gap:5px; font-family:'JetBrains Mono'; font-size:10.5px; color:var(--osd-green); letter-spacing:.5px;}
+  .rec-dot{width:6px;height:6px;border-radius:50%;background:var(--red); box-shadow:0 0 6px var(--red); animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .hero-title{font-family:'Space Grotesk'; font-weight:600; font-size:19px; line-height:1.35; margin:6px 0 0; position:relative; z-index:1;}
+  .hero-sub{font-size:12.5px; color:#B7C7D4; margin-top:5px; position:relative; z-index:1;}
+
+  /* ---------- TABS ---------- */
+  .tabs{display:flex; gap:6px; padding:14px 14px 0; overflow-x:auto; scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab-btn{flex:0 0 auto; padding:9px 15px; border-radius:100px; border:1px solid var(--border); background:var(--surface); color:var(--text-soft); font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; transition:.15s;}
+  .tab-btn.active{background:var(--navy); border-color:var(--navy); color:#fff;}
+
+  .section{display:none; padding:16px 14px 6px;}
+  .section.active{display:block;}
+
+  /* ---------- FILTER ROW ---------- */
+  .filter-block{margin-bottom:14px;}
+  .filter-label{font-size:11px; color:var(--text-soft); text-transform:uppercase; letter-spacing:.6px; font-weight:700; margin:0 0 8px 2px; font-family:'JetBrains Mono';}
+  .chip-row{display:flex; gap:7px; flex-wrap:wrap;}
+  .chip{padding:7px 13px; border-radius:9px; border:1px solid var(--border); background:var(--surface); font-size:12.5px; font-weight:600; color:var(--text); cursor:pointer; transition:.15s;}
+  .chip.active{background:var(--osd-green); border-color:var(--osd-green); color:#06210f;}
+  .chip .mp-tag{font-family:'JetBrains Mono';}
+
+  /* ---------- SUGGESTION STRIP ---------- */
+  .suggest-strip{background:linear-gradient(135deg, var(--navy-soft), #fff); border:1px dashed #B9CBDA; border-radius:14px; padding:12px 12px 4px; margin-bottom:16px; display:none;}
+  .suggest-strip.show{display:block;}
+  .suggest-title{font-size:12.5px; font-weight:700; color:var(--navy); margin-bottom:8px; display:flex; align-items:center; gap:6px;}
+  .suggest-scroll{display:flex; gap:9px; overflow-x:auto; padding-bottom:12px; scrollbar-width:none;}
+  .suggest-scroll::-webkit-scrollbar{display:none;}
+  .suggest-card{flex:0 0 128px; background:#fff; border:1px solid var(--border); border-radius:12px; padding:9px;}
+  .suggest-card .name{font-size:11.5px; font-weight:600; line-height:1.3; height:29px; overflow:hidden;}
+  .suggest-card .price{font-family:'JetBrains Mono'; font-size:12.5px; font-weight:700; color:var(--navy); margin:5px 0 6px;}
+  .suggest-add{width:100%; padding:6px 0; border-radius:8px; border:none; background:var(--navy); color:#fff; font-size:11.5px; font-weight:700; cursor:pointer;}
+
+  /* ---------- PRODUCT GRID ---------- */
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:11px;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column;}
+  .card-media{position:relative; background:radial-gradient(circle at 30% 20%, #17334f, #0B1D2E 75%); aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;}
+  .card-media svg{width:58%; height:58%;}
+  .osd-badge{position:absolute; top:8px; left:8px; background:rgba(0,0,0,.45); border:1px solid rgba(40,214,124,.5); color:var(--osd-green); font-family:'JetBrains Mono'; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; letter-spacing:.4px;}
+  .brand-badge{position:absolute; top:8px; right:8px; background:rgba(255,255,255,.92); color:var(--navy); font-size:9.5px; font-weight:700; padding:2px 6px; border-radius:4px; letter-spacing:.3px;}
+  .card-body{padding:10px 10px 11px; display:flex; flex-direction:column; gap:7px; flex:1;}
+  .card-name{font-size:12.8px; font-weight:600; line-height:1.32; min-height:33px;}
+  .card-spec{font-size:10.5px; color:var(--text-soft); font-family:'JetBrains Mono';}
+  .card-price{font-family:'JetBrains Mono'; font-weight:700; font-size:15px; color:var(--navy); margin-top:auto;}
+  .qty-row{display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:2px;}
+  .stepper{display:flex; align-items:center; border:1px solid var(--border); border-radius:8px; overflow:hidden;}
+  .stepper button{width:26px; height:26px; border:none; background:var(--surface-2); font-size:15px; font-weight:700; color:var(--navy); cursor:pointer; line-height:1;}
+  .stepper input{width:30px; border:none; text-align:center; font-family:'JetBrains Mono'; font-size:12px; font-weight:700; background:#fff; padding:0;}
+  .add-btn{flex:1; background:var(--navy); color:#fff; border:none; border-radius:8px; padding:7px 0; font-size:11.5px; font-weight:700; cursor:pointer; transition:.15s;}
+  .add-btn.added{background:var(--osd-green); color:#06210f;}
+
+  /* ---------- INSTALL / CABLE SECTION ---------- */
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); margin-bottom:14px;}
+  .panel-title{font-family:'Space Grotesk'; font-weight:600; font-size:15px; margin:0 0 4px;}
+  .panel-desc{font-size:12px; color:var(--text-soft); margin:0 0 14px; line-height:1.5;}
+  .field-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .field-label{font-size:13px; font-weight:600;}
+  .field-hint{font-size:11px; color:var(--text-soft); font-family:'JetBrains Mono'; margin-top:2px;}
+  .stepper.lg button{width:32px;height:32px;font-size:17px;}
+  .stepper.lg input{width:40px; font-size:14px;}
+  .tier-row{display:flex; gap:7px; margin-top:6px;}
+  .tier-btn{flex:1; border:1px solid var(--border); background:var(--surface); border-radius:10px; padding:9px 4px; text-align:center; cursor:pointer;}
+  .tier-btn.active{border-color:var(--osd-green); background:#EFFBF4;}
+  .tier-name{font-size:11px; font-weight:700;}
+  .tier-price{font-family:'JetBrains Mono'; font-size:11px; color:var(--text-soft); margin-top:2px;}
+  .subtotal-line{display:flex; justify-content:space-between; align-items:center; border-top:1px dashed var(--border); padding-top:10px; margin-top:4px;}
+  .subtotal-line .amt{font-family:'JetBrains Mono'; font-weight:700; font-size:14px; color:var(--navy);}
+
+  /* ---------- CART DRAWER ---------- */
+  .overlay{position:fixed; inset:0; background:rgba(10,20,30,.45); opacity:0; pointer-events:none; transition:.2s; z-index:40;}
+  .overlay.show{opacity:1; pointer-events:auto;}
+  .drawer{position:fixed; right:0; top:0; bottom:0; width:100%; max-width:420px; background:var(--bg); z-index:41; transform:translateX(100%); transition:.25s cubic-bezier(.4,0,.2,1); display:flex; flex-direction:column;}
+  .drawer.show{transform:translateX(0);}
+  .drawer-head{background:var(--navy); color:#fff; padding:16px 16px; display:flex; align-items:center; justify-content:space-between;}
+  .drawer-head h3{margin:0; font-family:'Space Grotesk'; font-size:16px;}
+  .drawer-close{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.1); border:none; color:#fff; font-size:16px; cursor:pointer;}
+  .drawer-body{flex:1; overflow-y:auto; padding:14px;}
+  .cart-item{display:flex; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:9px; margin-bottom:9px;}
+  .cart-item-media{width:52px;height:52px;border-radius:9px; background:linear-gradient(135deg,#17334f,#0B1D2E); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+  .cart-item-media svg{width:60%;height:60%;}
+  .cart-item-info{flex:1; min-width:0;}
+  .cart-item-name{font-size:12px; font-weight:600; line-height:1.3;}
+  .cart-item-price{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text-soft); margin-top:3px;}
+  .cart-item-ctrl{display:flex; align-items:center; justify-content:space-between; margin-top:6px;}
+  .remove-x{background:none; border:none; color:var(--red); font-size:11px; font-weight:700; cursor:pointer;}
+  .empty-cart{text-align:center; padding:40px 20px; color:var(--text-soft); font-size:13px;}
+  .drawer-foot{border-top:1px solid var(--border); padding:14px 16px 18px; background:var(--surface);}
+  .foot-line{display:flex; justify-content:space-between; font-size:12.5px; color:var(--text-soft); margin-bottom:5px;}
+  .foot-line b{color:var(--text); font-family:'JetBrains Mono';}
+  .foot-total{display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:10px; border-top:1px dashed var(--border);}
+  .foot-total .label{font-size:13px; font-weight:700;}
+  .foot-total .val{font-family:'JetBrains Mono'; font-size:19px; font-weight:700; color:var(--navy);}
+  .checkout-btn{width:100%; margin-top:12px; background:var(--osd-green); color:#06210f; border:none; border-radius:11px; padding:13px 0; font-size:14px; font-weight:700; cursor:pointer;}
+
+  /* ---------- STICKY BOTTOM BAR ---------- */
+  .stickybar{position:fixed; left:50%; transform:translateX(-50%); bottom:14px; width:calc(100% - 28px); max-width:452px; background:var(--navy); color:#fff; border-radius:14px; padding:12px 14px; display:none; align-items:center; justify-content:space-between; box-shadow:0 12px 28px -8px rgba(15,42,67,.45); z-index:30; cursor:pointer;}
+  .stickybar.show{display:flex;}
+  .stickybar .left{display:flex; align-items:center; gap:9px;}
+  .stickybar .badge{background:var(--osd-green); color:#06210f; font-family:'JetBrains Mono'; font-weight:700; font-size:12px; width:24px;height:24px;border-radius:7px; display:flex; align-items:center; justify-content:center;}
+  .stickybar .txt{font-size:12.5px; font-weight:600;}
+  .stickybar .amt{font-family:'JetBrains Mono'; font-weight:700; font-size:15px;}
+
+  .toast{position:fixed; left:50%; transform:translateX(-50%); top:16px; background:var(--navy-dark); color:#fff; padding:10px 16px; border-radius:10px; font-size:12.5px; font-weight:600; z-index:60; opacity:0; pointer-events:none; transition:.2s;}
+  .toast.show{opacity:1; top:20px;}
+
+  /* ---------- MODALS (order form + chek) ---------- */
+  .modal-overlay{position:fixed; inset:0; background:rgba(10,20,30,.55); z-index:70; display:none; align-items:flex-end; justify-content:center;}
+  .modal-overlay.show{display:flex;}
+  .modal-sheet{width:100%; max-width:440px; background:var(--bg); border-radius:20px 20px 0 0; max-height:88vh; overflow-y:auto; padding:18px 18px 22px; animation:slideUp .22s ease;}
+  @keyframes slideUp{from{transform:translateY(30px); opacity:0} to{transform:translateY(0); opacity:1}}
+  .modal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .modal-head h3{margin:0; font-family:'Space Grotesk'; font-size:16px;}
+  .modal-close{width:30px;height:30px;border-radius:9px; border:none; background:var(--surface-2); font-size:15px; cursor:pointer;}
+  .form-group{margin-bottom:12px;}
+  .form-label{font-size:12px; font-weight:700; color:var(--text-soft); margin-bottom:5px; display:block;}
+  .form-label .req{color:var(--red);}
+  .form-input{width:100%; border:1px solid var(--border); background:var(--surface); border-radius:10px; padding:11px 12px; font-size:13.5px; font-family:'Inter'; color:var(--text);}
+  .form-input:focus{outline:none; border-color:var(--osd-green);}
+  .geo-btn{margin-top:7px; display:inline-flex; align-items:center; gap:6px; background:var(--navy-soft); border:1px solid var(--border); color:var(--navy); font-size:11.5px; font-weight:700; padding:7px 11px; border-radius:8px; cursor:pointer;}
+  .form-note{font-size:11px; color:var(--text-soft); line-height:1.5; background:var(--navy-soft); border-radius:10px; padding:9px 11px; margin-bottom:14px;}
+  .submit-order-btn{width:100%; background:var(--navy); color:#fff; border:none; border-radius:11px; padding:13px 0; font-size:14px; font-weight:700; cursor:pointer; margin-top:4px;}
+
+  /* receipt look, echoing a real thermal chek */
+  .chek-paper{background:#fff; border:1px solid var(--border); border-radius:10px; padding:18px 16px; font-family:'JetBrains Mono',monospace; font-size:12px; color:#111;}
+  .chek-paper .c{text-align:center;}
+  .chek-paper .shopname{font-weight:700; font-size:14px; letter-spacing:.5px;}
+  .chek-paper .line{border-top:1px dashed #999; margin:9px 0;}
+  .chek-row{display:flex; justify-content:space-between; gap:8px; margin-bottom:3px;}
+  .chek-row.total{font-weight:700; font-size:13.5px; margin-top:6px;}
+  .chek-section-title{font-weight:700; margin:10px 0 4px; font-size:11.5px; text-transform:uppercase; letter-spacing:.4px;}
+  .send-row{display:flex; gap:8px; margin-top:16px;}
+  .send-btn{flex:1; border:none; border-radius:11px; padding:12px 0; font-size:12.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;}
+  .send-btn.tg{background:#2AABEE; color:#fff;}
+  .send-btn.wa{background:#25D366; color:#fff;}
+  .copy-btn{width:100%; margin-top:8px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:10px; padding:10px 0; font-size:12px; font-weight:700; cursor:pointer;}
+
+  /* ---------- ADMIN PANEL ---------- */
+  .admin-gate-body{padding:6px 2px 2px;}
+  .admin-topbar{background:var(--navy); color:#fff; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; border-radius:16px 16px 0 0;}
+  .admin-topbar h3{margin:0; font-family:'Space Grotesk'; font-size:15px;}
+  .admin-tabs{display:flex; gap:6px; padding:12px 14px 0; background:var(--bg);}
+  .admin-tab{flex:1; text-align:center; padding:8px 0; border-radius:9px; border:1px solid var(--border); background:var(--surface); font-size:12px; font-weight:700; cursor:pointer; color:var(--text-soft);}
+  .admin-tab.active{background:var(--navy); border-color:var(--navy); color:#fff;}
+  .admin-list{padding:12px 14px 4px; display:flex; flex-direction:column; gap:8px; max-height:52vh; overflow-y:auto;}
+  .admin-row{display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:8px;}
+  .admin-thumb{width:44px;height:44px;border-radius:9px; background:linear-gradient(135deg,#17334f,#0B1D2E); flex:0 0 auto; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+  .admin-thumb img{width:100%; height:100%; object-fit:cover;}
+  .admin-thumb svg{width:60%;height:60%;}
+  .admin-row-info{flex:1; min-width:0;}
+  .admin-row-name{font-size:12.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .admin-row-meta{font-size:10.5px; color:var(--text-soft); font-family:'JetBrains Mono'; margin-top:2px;}
+  .admin-row-actions{display:flex; gap:6px; flex:0 0 auto;}
+  .admin-icon-btn{width:28px;height:28px;border-radius:8px; border:1px solid var(--border); background:var(--surface-2); font-size:13px; cursor:pointer;}
+  .admin-icon-btn.danger{color:var(--red); border-color:#F3C4C6;}
+  .admin-add-btn{margin:12px 14px 4px; width:calc(100% - 28px); background:var(--osd-green); color:#06210f; border:none; border-radius:11px; padding:12px 0; font-size:13px; font-weight:700; cursor:pointer;}
+  .admin-note{margin:0 14px 12px; font-size:10.5px; color:var(--text-soft); background:var(--navy-soft); border-radius:9px; padding:8px 10px; line-height:1.5;}
+  .img-upload-row{display:flex; align-items:center; gap:10px; margin-bottom:4px;}
+  .img-preview{width:56px;height:56px;border-radius:10px; background:var(--surface-2); border:1px dashed var(--border); display:flex; align-items:center; justify-content:center; overflow:hidden; flex:0 0 auto; font-size:10px; color:var(--text-soft); text-align:center;}
+  .img-preview img{width:100%; height:100%; object-fit:cover;}
+  .file-btn{font-size:11px; font-weight:700; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:7px 10px; cursor:pointer; display:inline-block;}
+  .form-select{width:100%; border:1px solid var(--border); background:var(--surface); border-radius:10px; padding:11px 12px; font-size:13.5px; font-family:'Inter'; color:var(--text);}
+  .form-textarea{width:100%; border:1px solid var(--border); background:var(--surface); border-radius:10px; padding:11px 12px; font-size:13px; font-family:'Inter'; color:var(--text); resize:vertical; min-height:60px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" stroke="#06210f" stroke-width="2"/><circle cx="12" cy="12" r="1.6" fill="#06210f"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">Vodiy Kameralar</div>
+          <div class="brand-tag">KAMERA SAVDOSI · O'RNATISH XIZMATI</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="cart-btn" onclick="openAdminGate()" title="Admin panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+        </button>
+        <button class="cart-btn" onclick="openCart()">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.4 12.4a2 2 0 0 0 2 1.6h8.4a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="20" r="1.4" fill="#fff" stroke="none"/><circle cx="17" cy="20" r="1.4" fill="#fff" stroke="none"/></svg>
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+      </div>
+    </div>
+    <div class="hero-line">
+      <span class="rec"><span class="rec-dot"></span>ONLINE · ANDIJON</span>
+    </div>
+    <div class="hero-title">Hikvision va EZVIZ kameralarini tanlang,<br>savatga soling — biz o'rnatib beramiz.</div>
+    <div class="hero-sub">Narxlar $ da · Kabel so'mda · Usta xizmati $15/to'chka</div>
+  </header>
+
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="cameras" onclick="switchTab('cameras')">📷 Kameralar</button>
+    <button class="tab-btn" data-tab="accessories" onclick="switchTab('accessories')">🗄 Aksessuarlar</button>
+    <button class="tab-btn" data-tab="cable" onclick="switchTab('cable')">🔌 Kabel</button>
+  </div>
+
+  <!-- ============ CAMERAS TAB ============ -->
+  <section class="section active" id="tab-cameras">
+    <div class="filter-block">
+      <div class="filter-label">Brend</div>
+      <div class="chip-row" id="brandFilter">
+        <div class="chip active" data-brand="all" onclick="setBrand('all')">Barchasi</div>
+        <div class="chip" data-brand="Hikvision" onclick="setBrand('Hikvision')">Hikvision</div>
+        <div class="chip" data-brand="EZVIZ" onclick="setBrand('EZVIZ')">EZVIZ</div>
+      </div>
+    </div>
+    <div class="filter-block">
+      <div class="filter-label">Kamera pikseli (MP)</div>
+      <div class="chip-row" id="mpFilter">
+        <div class="chip active" data-mp="all" onclick="setMp('all')">Barchasi</div>
+        <div class="chip" data-mp="2" onclick="setMp('2')"><span class="mp-tag">2MP</span></div>
+        <div class="chip" data-mp="4" onclick="setMp('4')"><span class="mp-tag">4MP</span></div>
+        <div class="chip" data-mp="6" onclick="setMp('6')"><span class="mp-tag">6MP</span></div>
+        <div class="chip" data-mp="8" onclick="setMp('8')"><span class="mp-tag">8MP</span></div>
+      </div>
+    </div>
+
+    <div class="suggest-strip" id="suggestStrip">
+      <div class="suggest-title">⚡ Ushbu kameralarga mos qo'shimchalar</div>
+      <div class="suggest-scroll" id="suggestScroll"></div>
+    </div>
+
+    <div class="grid" id="cameraGrid"></div>
+  </section>
+
+  <!-- ============ ACCESSORIES TAB ============ -->
+  <section class="section" id="tab-accessories">
+    <div class="filter-block">
+      <div class="filter-label">Turi</div>
+      <div class="chip-row" id="accFilter">
+        <div class="chip active" data-acc="all" onclick="setAccType('all')">Barchasi</div>
+        <div class="chip" data-acc="nvr" onclick="setAccType('nvr')">NVR (registrator)</div>
+        <div class="chip" data-acc="hdd" onclick="setAccType('hdd')">Xotira (HDD)</div>
+        <div class="chip" data-acc="poe" onclick="setAccType('poe')">PoE switch</div>
+        <div class="chip" data-acc="router" onclick="setAccType('router')">Router</div>
+        <div class="chip" data-acc="other" onclick="setAccType('other')">Boshqa</div>
+      </div>
+    </div>
+    <div class="grid" id="accGrid"></div>
+  </section>
+
+  <!-- ============ CABLE TAB ============ -->
+  <section class="section" id="tab-cable">
+    <div class="panel">
+      <div class="panel-title">Kabel hisoblagichi</div>
+      <div class="panel-desc">Kamera va NVR o'rtasidagi masofaga qarab kerakli kabel uzunligini kiriting. Sifat darajasini tanlang — narx metriga qarab o'zgaradi.</div>
+      <div class="field-row">
+        <div>
+          <div class="field-label">Kabel uzunligi</div>
+          <div class="field-hint" id="cableMetHint">metrda</div>
+        </div>
+        <div class="stepper lg">
+          <button onclick="changeCable(-5)">−</button>
+          <input type="number" id="cableMeters" value="20" min="0" max="1000" oninput="renderCable()">
+          <button onclick="changeCable(5)">+</button>
+        </div>
+      </div>
+      <div class="filter-label" style="margin-top:6px;">Kabel sifati</div>
+      <div class="tier-row" id="tierRow"></div>
+      <div class="subtotal-line">
+        <span class="field-label">Kabel narxi</span>
+        <span class="amt" id="cableSubtotal">0 so'm</span>
+      </div>
+      <button class="add-btn" style="width:100%; margin-top:12px;" onclick="addCableToCart()">Savatga qo'shish</button>
+    </div>
+  </section>
+
+</div>
+
+<div class="stickybar" id="stickybar" onclick="openCart()">
+  <div class="left">
+    <div class="badge" id="barCount">0</div>
+    <div class="txt">Savatni ko'rish</div>
+  </div>
+  <div class="amt" id="barAmt">$0</div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeCart()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h3>Savat</h3>
+    <button class="drawer-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot" id="drawerFoot" style="display:none;">
+    <div class="foot-line"><span>Kameralar / aksessuarlar</span><b id="fItems">$0</b></div>
+    <div class="foot-line"><span>Kabel</span><b id="fCable">0 so'm</b></div>
+    <div class="foot-total"><span class="label">Jami (taxminiy)</span><span class="val" id="fTotal">$0</span></div>
+    <button class="checkout-btn" onclick="checkout()">Buyurtmani rasmiylashtirish</button>
+  </div>
+</div>
+
+<!-- ORDER FORM MODAL -->
+<div class="modal-overlay" id="formOverlay" onclick="if(event.target===this) closeOrderForm()">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <h3>Buyurtma ma'lumotlari</h3>
+      <button class="modal-close" onclick="closeOrderForm()">✕</button>
+    </div>
+    <div class="form-note">Bu yerda to'lov qilinmaydi. Tanlagan mahsulotlaringiz va ma'lumotlaringiz chek shaklida operatorga yuboriladi, u siz bilan bog'lanadi.</div>
+
+    <div class="form-group">
+      <label class="form-label">Ismingiz <span class="req">*</span></label>
+      <input class="form-input" id="custName" placeholder="Masalan: Aziz Karimov">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Telefon raqamingiz <span class="req">*</span></label>
+      <input class="form-input" id="custPhone" placeholder="+998 __ ___ __ __" inputmode="tel">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Manzil / lokatsiya <span class="req">*</span></label>
+      <input class="form-input" id="custAddress" placeholder="Viloyat, tuman, ko'cha, uy">
+      <button class="geo-btn" onclick="attachLocation()">📍 Joylashuvni ulash</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Uy telefon raqami (ixtiyoriy)</label>
+      <input class="form-input" id="custHomePhone" placeholder="Statsionar telefon bo'lsa">
+    </div>
+
+    <button class="submit-order-btn" onclick="submitOrder()">Chekni shakllantirish</button>
+  </div>
+</div>
+
+<!-- CHEK (RECEIPT) MODAL -->
+<div class="modal-overlay" id="chekOverlay" onclick="if(event.target===this) closeChek()">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <h3>Buyurtma cheki</h3>
+      <button class="modal-close" onclick="closeChek()">✕</button>
+    </div>
+    <div class="chek-paper" id="chekPaper"></div>
+    <div class="send-row">
+      <button class="send-btn tg" onclick="sendTelegram()">✈️ Telegram</button>
+      <button class="send-btn wa" onclick="sendWhatsapp()">💬 WhatsApp</button>
+    </div>
+    <button class="copy-btn" onclick="copyChek()">📋 Chek matnini nusxalash</button>
+  </div>
+</div>
+
+<!-- ADMIN GATE (password) -->
+<div class="modal-overlay" id="adminGateOverlay" onclick="if(event.target===this) closeAdminGate()">
+  <div class="modal-sheet" style="max-width:380px;">
+    <div class="modal-head">
+      <h3>Admin kirish</h3>
+      <button class="modal-close" onclick="closeAdminGate()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Admin parol</label>
+      <input class="form-input" id="adminPassInput" type="password" placeholder="Parolni kiriting" onkeydown="if(event.key==='Enter') checkAdminPassword()">
+    </div>
+    <button class="submit-order-btn" onclick="checkAdminPassword()">Kirish</button>
+    <div class="form-note" style="margin-top:12px;">Standart parol: <b>vodiy2026</b>. Buni kodda <span class="mono">ADMIN_PASSWORD</span> o'zgaruvchisidan istalgan vaqt almashtirishingiz mumkin.</div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="modal-overlay" id="adminPanelOverlay" onclick="if(event.target===this) closeAdminPanel()">
+  <div class="modal-sheet" style="padding:0; max-width:460px;">
+    <div class="admin-topbar">
+      <h3>⚙ Admin panel</h3>
+      <button class="modal-close" onclick="closeAdminPanel()" style="background:rgba(255,255,255,.12); color:#fff;">✕</button>
+    </div>
+    <div class="admin-tabs">
+      <div class="admin-tab active" data-atab="cameras" onclick="switchAdminTab('cameras')">📷 Kameralar</div>
+      <div class="admin-tab" data-atab="accessories" onclick="switchAdminTab('accessories')">🗄 Aksessuar</div>
+    </div>
+    <div class="admin-note">Bu yerdagi o'zgarishlar shu brauzerda saqlanadi (localStorage). Boshqa qurilma/brauzerda ko'rish uchun pastdagi "Export/Import" orqali JSON fayl sifatida ko'chiring yoki keyinchalik umumiy bazaga (masalan Supabase) ulang.</div>
+    <div class="admin-list" id="adminList"></div>
+    <button class="admin-add-btn" onclick="openProductForm(null)">+ Yangi mahsulot qo'shish</button>
+    <div style="display:flex; gap:8px; margin:0 14px 16px;">
+      <button class="copy-btn" style="margin:0;" onclick="exportCatalog()">⬇ Export JSON</button>
+      <button class="copy-btn" style="margin:0;" onclick="document.getElementById('importFile').click()">⬆ Import JSON</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importCatalog(event)">
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT PRODUCT FORM -->
+<div class="modal-overlay" id="productFormOverlay" onclick="if(event.target===this) closeProductForm()">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <h3 id="productFormTitle">Yangi mahsulot</h3>
+      <button class="modal-close" onclick="closeProductForm()">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Rasm</label>
+      <div class="img-upload-row">
+        <div class="img-preview" id="imgPreview">Rasm yo'q</div>
+        <label class="file-btn">📁 Fayl tanlash<input type="file" accept="image/*" style="display:none" onchange="handleImageUpload(event)"></label>
+      </div>
+      <input class="form-input" id="prodImgUrl" placeholder="yoki rasm URL manzilini kiriting" style="margin-top:8px;" oninput="onImgUrlInput()">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Nomi <span class="req">*</span></label>
+      <input class="form-input" id="prodName" placeholder="Masalan: Hikvision DS-2CD 4MP Dome">
+    </div>
+
+    <div class="form-group" id="brandField">
+      <label class="form-label">Brend</label>
+      <select class="form-select" id="prodBrand">
+        <option value="Hikvision">Hikvision</option>
+        <option value="EZVIZ">EZVIZ</option>
+        <option value="Boshqa">Boshqa</option>
+      </select>
+    </div>
+    <div class="form-group" id="mpField">
+      <label class="form-label">Piksel (MP)</label>
+      <select class="form-select" id="prodMp">
+        <option value="2">2MP</option>
+        <option value="4">4MP</option>
+        <option value="6">6MP</option>
+        <option value="8">8MP</option>
+      </select>
+    </div>
+    <div class="form-group" id="typeField">
+      <label class="form-label">Ko'rinishi</label>
+      <select class="form-select" id="prodType">
+        <option value="dome">Dome</option>
+        <option value="bullet">Bullet</option>
+      </select>
+    </div>
+    <div class="form-group" id="accTypeField" style="display:none;">
+      <label class="form-label">Aksessuar turi</label>
+      <select class="form-select" id="prodAccType">
+        <option value="nvr">NVR (registrator)</option>
+        <option value="hdd">Xotira (HDD)</option>
+        <option value="poe">PoE switch</option>
+        <option value="router">Router</option>
+        <option value="other">Boshqa</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Tavsif / bio</label>
+      <textarea class="form-textarea" id="prodDesc" placeholder="Qisqacha izoh: xususiyatlari, kafolat, holati va h.k."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Narxi ($) <span class="req">*</span></label>
+      <input class="form-input" id="prodPrice" type="number" min="0" step="1" placeholder="Masalan: 35">
+    </div>
+
+    <button class="submit-order-btn" onclick="saveProduct()">Saqlash</button>
+    <button class="copy-btn" id="deleteProductBtn" style="display:none; color:var(--red); border-color:#F3C4C6;" onclick="deleteCurrentProduct()">🗑 Mahsulotni o'chirish</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const FX_RATE = 12700; // 1$ ≈ so'm, taxminiy — faqat umumiy jamlash uchun
+
+function camIcon(kind, accent){
+  if(kind==='dome'){
+    return `<svg viewBox="0 0 64 64" fill="none"><path d="M8 30 a24 24 0 0 1 48 0 z" fill="#0e2438" stroke="${accent}" stroke-width="2"/><circle cx="32" cy="30" r="10" fill="#081422" stroke="${accent}" stroke-width="2"/><circle cx="32" cy="30" r="4" fill="${accent}"/><rect x="4" y="30" width="56" height="4" rx="2" fill="#0e2438" stroke="${accent}" stroke-width="1.5"/></svg>`;
+  }
+  return `<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="24" width="34" height="16" rx="4" fill="#0e2438" stroke="${accent}" stroke-width="2"/><circle cx="44" cy="32" r="9" fill="#081422" stroke="${accent}" stroke-width="2"/><circle cx="44" cy="32" r="3.5" fill="${accent}"/><rect x="4" y="30" width="8" height="4" rx="2" fill="${accent}"/></svg>`;
+}
+function accIcon(kind){
+  const a='#28D67C';
+  if(kind==='nvr') return `<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="18" width="48" height="28" rx="4" fill="#0e2438" stroke="${a}" stroke-width="2"/><circle cx="18" cy="32" r="3" fill="${a}"/><rect x="28" y="29" width="20" height="6" rx="1.5" fill="${a}" opacity=".5"/></svg>`;
+  if(kind==='hdd') return `<svg viewBox="0 0 64 64" fill="none"><rect x="12" y="14" width="40" height="36" rx="5" fill="#0e2438" stroke="${a}" stroke-width="2"/><circle cx="32" cy="32" r="10" fill="none" stroke="${a}" stroke-width="2"/><circle cx="32" cy="32" r="2.5" fill="${a}"/></svg>`;
+  if(kind==='poe') return `<svg viewBox="0 0 64 64" fill="none"><rect x="8" y="22" width="48" height="20" rx="4" fill="#0e2438" stroke="${a}" stroke-width="2"/>${[16,26,36,46].map(x=>`<rect x="${x}" y="28" width="6" height="8" fill="${a}" opacity=".7"/>`).join('')}</svg>`;
+  if(kind==='router') return `<svg viewBox="0 0 64 64" fill="none"><rect x="10" y="30" width="44" height="14" rx="4" fill="#0e2438" stroke="${a}" stroke-width="2"/><path d="M20 30v-8M32 30v-12M44 30v-8" stroke="${a}" stroke-width="2.5" stroke-linecap="round"/><circle cx="20" cy="20" r="2" fill="${a}"/><circle cx="32" cy="16" r="2" fill="${a}"/><circle cx="44" cy="20" r="2" fill="${a}"/><circle cx="46" cy="37" r="2" fill="${a}"/></svg>`;
+  return `<svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="18" fill="#0e2438" stroke="${a}" stroke-width="2"/><path d="M32 22v20M22 32h20" stroke="${a}" stroke-width="2.5"/></svg>`;
+}
+
+const DEFAULT_CAMERAS = [
+  {id:'h2d', brand:'Hikvision', mp:2, type:'dome', name:"Hikvision DS-2CE 2MP Dome (ichki)", price:28},
+  {id:'h2b', brand:'Hikvision', mp:2, type:'bullet', name:"Hikvision DS-2CE 2MP Bullet (tashqi)", price:30},
+  {id:'h4d', brand:'Hikvision', mp:4, type:'dome', name:"Hikvision DS-2CD 4MP Dome (tungi ko'rish)", price:35},
+  {id:'h4b', brand:'Hikvision', mp:4, type:'bullet', name:"Hikvision DS-2CD 4MP Bullet IP67", price:38},
+  {id:'h6d', brand:'Hikvision', mp:6, type:'dome', name:"Hikvision DS-2CD 6MP Dome ColorVu", price:48},
+  {id:'h8d', brand:'Hikvision', mp:8, type:'dome', name:"Hikvision DS-2CD 8MP Dome (4K)", price:65},
+  {id:'h8b', brand:'Hikvision', mp:8, type:'bullet', name:"Hikvision DS-2CD 8MP Bullet (4K)", price:68},
+  {id:'e2d', brand:'EZVIZ', mp:2, type:'dome', name:"EZVIZ C4W 2MP Dome Wi-Fi", price:32},
+  {id:'e2b', brand:'EZVIZ', mp:2, type:'bullet', name:"EZVIZ C3W 2MP Bullet Wi-Fi", price:40},
+  {id:'e4d', brand:'EZVIZ', mp:4, type:'dome', name:"EZVIZ H3C 4MP Dome PT", price:45},
+  {id:'e4b', brand:'EZVIZ', mp:4, type:'bullet', name:"EZVIZ C8C 4MP Bullet", price:48},
+  {id:'e6d', brand:'EZVIZ', mp:6, type:'dome', name:"EZVIZ H8 6MP Dome ColorVu", price:58},
+  {id:'e8d', brand:'EZVIZ', mp:8, type:'dome', name:"EZVIZ C6N 8MP Dome (4K)", price:75},
+];
+
+const DEFAULT_ACCESSORIES = [
+  {id:'nvr4', acc:'nvr', name:"NVR registrator 4-kanal", price:55, spec:"4CH · H.265"},
+  {id:'nvr8', acc:'nvr', name:"NVR registrator 8-kanal", price:85, spec:"8CH · H.265"},
+  {id:'nvr16', acc:'nvr', name:"NVR registrator 16-kanal", price:140, spec:"16CH · H.265"},
+  {id:'hdd1', acc:'hdd', name:"Qattiq disk (HDD) 1TB", price:38, spec:"Surveillance HDD"},
+  {id:'hdd2', acc:'hdd', name:"Qattiq disk (HDD) 2TB", price:52, spec:"Surveillance HDD"},
+  {id:'hdd4', acc:'hdd', name:"Qattiq disk (HDD) 4TB", price:78, spec:"Surveillance HDD"},
+  {id:'poe4', acc:'poe', name:"PoE switch 4-port", price:25, spec:"10/100Mbps"},
+  {id:'poe8', acc:'poe', name:"PoE switch 8-port", price:40, spec:"10/100Mbps"},
+  {id:'rt1', acc:'router', name:"Wi-Fi router (uy uchun)", price:18, spec:"2.4GHz · masofaviy ko'rish"},
+  {id:'rt2', acc:'router', name:"Wi-Fi 6 router (kuchli)", price:35, spec:"Dual-band · katta uy/ofis"},
+  {id:'rt3', acc:'router', name:"4G/LTE router", price:45, spec:"Internetsiz hududlar uchun"},
+  {id:'adp', acc:'other', name:"12V quvvat adapteri", price:6, spec:"1 dona"},
+  {id:'conn', acc:'other', name:"BNC + DC ulagichlar to'plami", price:4, spec:"10 dona"},
+];
+
+/* Working catalogs — loaded from localStorage (admin-editable), seeded from defaults on first run */
+const LS_CAM_KEY = 'vk_cameras_v1';
+const LS_ACC_KEY = 'vk_accessories_v1';
+function loadCatalog(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    if(raw){ return JSON.parse(raw); }
+  }catch(e){}
+  const seed = JSON.parse(JSON.stringify(fallback));
+  try{ localStorage.setItem(key, JSON.stringify(seed)); }catch(e){}
+  return seed;
+}
+function persistCatalog(){
+  try{
+    localStorage.setItem(LS_CAM_KEY, JSON.stringify(cameras));
+    localStorage.setItem(LS_ACC_KEY, JSON.stringify(accessories));
+  }catch(e){ showToast("Saqlashda xatolik (brauzer xotirasi to'lgan bo'lishi mumkin)"); }
+}
+let cameras = loadCatalog(LS_CAM_KEY, DEFAULT_CAMERAS);
+let accessories = loadCatalog(LS_ACC_KEY, DEFAULT_ACCESSORIES);
+
+const cableTiers = [
+  {id:'eco', name:'Oddiy', pricePerM:3000},
+  {id:'std', name:"O'rta", pricePerM:5500},
+  {id:'prm', name:'Premium', pricePerM:8000},
+];
+
+/* ---------------- STATE ---------------- */
+let state = {
+  brandFilter:'all', mpFilter:'all', accFilter:'all',
+  cart:{}, // id -> {qty, refType:'product'|'cable', meta}
+  cableTier:'std',
+};
+
+function getProduct(id){ return cameras.find(c=>c.id===id) || accessories.find(a=>a.id===id); }
+
+/* ---------------- RENDER: CAMERAS ---------------- */
+function setBrand(b){
+  state.brandFilter=b;
+  document.querySelectorAll('#brandFilter .chip').forEach(c=>c.classList.toggle('active', c.dataset.brand===b));
+  renderCameras();
+}
+function setMp(m){
+  state.mpFilter=m;
+  document.querySelectorAll('#mpFilter .chip').forEach(c=>c.classList.toggle('active', c.dataset.mp===m));
+  renderCameras();
+}
+function renderCameras(){
+  const grid = document.getElementById('cameraGrid');
+  const list = cameras.filter(c =>
+    (state.brandFilter==='all'||c.brand===state.brandFilter) &&
+    (state.mpFilter==='all'||String(c.mp)===state.mpFilter)
+  );
+  grid.innerHTML = list.map(c=>{
+    const accent = c.brand==='Hikvision' ? '#28D67C' : '#5BC8FF';
+    const qty = state.cart[c.id]?.qty || 0;
+    const media = c.img
+      ? `<img src="${c.img}" alt="${c.name}" style="width:100%;height:100%;object-fit:cover;">`
+      : camIcon(c.type, accent);
+    return `
+    <div class="card">
+      <div class="card-media">
+        ${media}
+        <div class="osd-badge">${c.mp}MP</div>
+        <div class="brand-badge">${c.brand}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">${c.name}</div>
+        <div class="card-spec">${c.desc ? c.desc : (c.type==='dome'?'Dome · ichki/tashqi':'Bullet · tashqi')}</div>
+        <div class="card-price">$${c.price}</div>
+        <div class="qty-row">
+          <div class="stepper">
+            <button onclick="stepQty('${c.id}',-1)">−</button>
+            <input type="text" readonly id="qty-${c.id}" value="${qty||1}">
+            <button onclick="stepQty('${c.id}',1)">+</button>
+          </div>
+          <button class="add-btn ${qty?'added':''}" id="add-${c.id}" onclick="addToCart('${c.id}')">${qty?"✓ Savatda":"Qo'shish"}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || `<div class="empty-cart" style="grid-column:1/-1;">Bu MP bo'yicha kamera topilmadi</div>`;
+  renderSuggestions();
+}
+
+/* ---------------- RENDER: ACCESSORIES ---------------- */
+function setAccType(t){
+  state.accFilter=t;
+  document.querySelectorAll('#accFilter .chip').forEach(c=>c.classList.toggle('active', c.dataset.acc===t));
+  renderAccessories();
+}
+function renderAccessories(){
+  const grid = document.getElementById('accGrid');
+  const list = accessories.filter(a=> state.accFilter==='all'||a.acc===state.accFilter );
+  grid.innerHTML = list.map(a=>{
+    const qty = state.cart[a.id]?.qty || 0;
+    const media = a.img
+      ? `<img src="${a.img}" alt="${a.name}" style="width:100%;height:100%;object-fit:cover;">`
+      : accIcon(a.acc);
+    return `
+    <div class="card">
+      <div class="card-media">
+        ${media}
+        <div class="brand-badge">Aksessuar</div>
+      </div>
+      <div class="card-body">
+        <div class="card-name">${a.name}</div>
+        <div class="card-spec">${a.desc ? a.desc : a.spec}</div>
+        <div class="card-price">$${a.price}</div>
+        <div class="qty-row">
+          <div class="stepper">
+            <button onclick="stepQty('${a.id}',-1)">−</button>
+            <input type="text" readonly id="qty-${a.id}" value="${qty||1}">
+            <button onclick="stepQty('${a.id}',1)">+</button>
+          </div>
+          <button class="add-btn ${qty?'added':''}" id="add-${a.id}" onclick="addToCart('${a.id}')">${qty?"✓ Savatda":"Qo'shish"}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------------- QTY / CART LOGIC ---------------- */
+const pendingQty = {}; // per-card selector before adding
+function stepQty(id, delta){
+  const input = document.getElementById('qty-'+id);
+  let v = parseInt(input.value||'1') + delta;
+  v = Math.max(1, Math.min(99, v));
+  input.value = v;
+  pendingQty[id] = v;
+  if(state.cart[id]) { state.cart[id].qty = v; updateCartUI(); }
+}
+function addToCart(id){
+  const p = getProduct(id);
+  const qty = pendingQty[id] || parseInt(document.getElementById('qty-'+id).value||'1');
+  const isCamera = !!cameras.find(c=>c.id===id);
+  state.cart[id] = {qty, refType: isCamera ? 'camera':'accessory'};
+  document.getElementById('add-'+id).classList.add('added');
+  document.getElementById('add-'+id).textContent = "✓ Savatda";
+  showToast(`${p.name} savatga qo'shildi`);
+  updateCartUI();
+  renderSuggestions();
+}
+
+function renderSuggestions(){
+  const hasCamera = Object.keys(state.cart).some(id=> cameras.find(c=>c.id===id));
+  const hasNvr = Object.keys(state.cart).some(id=> id.startsWith('nvr'));
+  const strip = document.getElementById('suggestStrip');
+  if(!hasCamera || hasNvr){ strip.classList.remove('show'); return; }
+  strip.classList.add('show');
+  const picks = accessories.filter(a=>['nvr8','hdd2','poe8','rt1','adp'].includes(a.id));
+  document.getElementById('suggestScroll').innerHTML = picks.map(a=>`
+    <div class="suggest-card">
+      <div class="name">${a.name}</div>
+      <div class="price">$${a.price}</div>
+      <button class="suggest-add" onclick="quickAdd('${a.id}')">+ Qo'shish</button>
+    </div>`).join('');
+}
+function quickAdd(id){
+  state.cart[id] = {qty:1, refType:'accessory'};
+  showToast("Qo'shildi: "+getProduct(id).name);
+  updateCartUI();
+  renderSuggestions();
+  if(document.getElementById('tab-accessories').classList.contains('active')) renderAccessories();
+}
+
+/* ---------------- CABLE ---------------- */
+function renderCable(){
+  document.getElementById('tierRow').innerHTML = cableTiers.map(t=>`
+    <div class="tier-btn ${state.cableTier===t.id?'active':''}" onclick="setTier('${t.id}')">
+      <div class="tier-name">${t.name}</div>
+      <div class="tier-price">${t.pricePerM.toLocaleString('ru-RU')} so'm/m</div>
+    </div>`).join('');
+  const meters = parseInt(document.getElementById('cableMeters').value||'0');
+  const tier = cableTiers.find(t=>t.id===state.cableTier);
+  const total = meters*tier.pricePerM;
+  document.getElementById('cableSubtotal').textContent = total.toLocaleString('ru-RU')+" so'm";
+}
+function setTier(id){ state.cableTier=id; renderCable(); }
+function changeCable(d){
+  const input = document.getElementById('cableMeters');
+  input.value = Math.max(0, Math.min(1000, parseInt(input.value||'0')+d));
+  renderCable();
+}
+function addCableToCart(){
+  const meters = parseInt(document.getElementById('cableMeters').value||'0');
+  if(meters<=0){ showToast('Kabel uzunligini kiriting'); return; }
+  const tier = cableTiers.find(t=>t.id===state.cableTier);
+  state.cart['cable'] = {qty:meters, refType:'cable', meta:{tier:tier.id, pricePerM:tier.pricePerM, tierName:tier.name}};
+  showToast(`Kabel (${meters}m, ${tier.name}) savatga qo'shildi`);
+  updateCartUI();
+}
+
+/* ---------------- CART UI / TOTALS ---------------- */
+function cartCountTotal(){
+  return Object.values(state.cart).reduce((s,i)=> s + (i.refType==='cable'?1:i.qty), 0);
+}
+function computeTotals(){
+  let itemsUsd=0, cableSom=0;
+  for(const [id,item] of Object.entries(state.cart)){
+    if(item.refType==='camera' || item.refType==='accessory'){
+      const p = getProduct(id); itemsUsd += p.price*item.qty;
+    } else if(item.refType==='cable'){
+      cableSom += item.qty*item.meta.pricePerM;
+    }
+  }
+  const grandUsd = itemsUsd + (cableSom/FX_RATE);
+  return {itemsUsd, cableSom, grandUsd};
+}
+function updateCartUI(){
+  const count = cartCountTotal();
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('barCount').textContent = count;
+  const t = computeTotals();
+  document.getElementById('barAmt').textContent = '$'+t.grandUsd.toFixed(0);
+  document.getElementById('stickybar').classList.toggle('show', count>0);
+  renderDrawer();
+}
+function renderDrawer(){
+  const body = document.getElementById('drawerBody');
+  const entries = Object.entries(state.cart);
+  if(entries.length===0){
+    body.innerHTML = `<div class="empty-cart">Savat bo'sh.<br>Kamera yoki aksessuar tanlang.</div>`;
+    document.getElementById('drawerFoot').style.display='none';
+    return;
+  }
+  document.getElementById('drawerFoot').style.display='block';
+  body.innerHTML = entries.map(([id,item])=>{
+    if(item.refType==='cable'){
+      return `<div class="cart-item">
+        <div class="cart-item-media">${accIcon('cable')}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">Kabel — ${item.meta.tierName}</div>
+          <div class="cart-item-price">${item.qty} m × ${item.meta.pricePerM.toLocaleString('ru-RU')} so'm</div>
+          <div class="cart-item-ctrl"><span class="mono" style="font-size:11px;">${(item.qty*item.meta.pricePerM).toLocaleString('ru-RU')} so'm</span><button class="remove-x" onclick="removeItem('${id}')">O'chirish</button></div>
+        </div>
+      </div>`;
+    }
+    const p = getProduct(id);
+    const accent = p.brand==='Hikvision'?'#28D67C':(p.brand==='EZVIZ'?'#5BC8FF':'#28D67C');
+    return `<div class="cart-item">
+      <div class="cart-item-media">${item.refType==='camera'?camIcon(p.type,accent):accIcon(p.acc)}</div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${p.name}</div>
+        <div class="cart-item-price">$${p.price} / dona</div>
+        <div class="cart-item-ctrl">
+          <div class="stepper">
+            <button onclick="drawerStep('${id}',-1)">−</button>
+            <input type="text" readonly value="${item.qty}">
+            <button onclick="drawerStep('${id}',1)">+</button>
+          </div>
+          <button class="remove-x" onclick="removeItem('${id}')">O'chirish</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const t = computeTotals();
+  document.getElementById('fItems').textContent = '$'+t.itemsUsd.toFixed(0);
+  document.getElementById('fCable').textContent = t.cableSom.toLocaleString('ru-RU')+" so'm";
+  document.getElementById('fTotal').textContent = '$'+t.grandUsd.toFixed(0);
+}
+function drawerStep(id, d){
+  const item = state.cart[id];
+  item.qty = Math.max(1, Math.min(99, item.qty+d));
+  const qtyInput = document.getElementById('qty-'+id);
+  if(qtyInput) qtyInput.value = item.qty;
+  pendingQty[id]=item.qty;
+  updateCartUI();
+}
+function removeItem(id){
+  delete state.cart[id];
+  const addBtn = document.getElementById('add-'+id);
+  if(addBtn){ addBtn.classList.remove('added'); addBtn.textContent="Qo'shish"; }
+  updateCartUI();
+  renderSuggestions();
+}
+const ADMIN_PHONE = "998977549898"; // +998 97 754 98 98
+
+// Bot orqali avtomatik yuborish uchun: /telegram-admin-bot papkasidagi serverni
+// joylashtirgach, manzilni shu yerga yozing. Bo'sh qoldirilsa, faqat
+// WhatsApp/Telegram-havola/nusxalash orqali yuborish ishlaydi.
+const TELEGRAM_BACKEND_URL = "";
+let lastChekText = "";
+let orderCounter = 4572;
+
+function checkout(){
+  const entries = Object.entries(state.cart);
+  if(entries.length===0){ showToast("Avval savatga mahsulot qo'shing"); return; }
+  document.getElementById('formOverlay').classList.add('show');
+}
+function closeOrderForm(){ document.getElementById('formOverlay').classList.remove('show'); }
+
+function attachLocation(){
+  if(!navigator.geolocation){ showToast("Brauzeringiz lokatsiyani qo'llamaydi"); return; }
+  showToast('Joylashuv aniqlanmoqda...');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude, longitude} = pos.coords;
+    const link = `https://maps.google.com/?q=${latitude.toFixed(6)},${longitude.toFixed(6)}`;
+    const addrInput = document.getElementById('custAddress');
+    addrInput.value = (addrInput.value ? addrInput.value+' — ' : '') + link;
+    showToast("Lokatsiya manzilga qo'shildi");
+  }, ()=>{
+    showToast("Lokatsiyani olib bo'lmadi, qo'lda kiriting");
+  });
+}
+
+function buildOrderPayload({name, phone, address, homePhone}){
+  const items = [];
+  for(const [id,item] of Object.entries(state.cart)){
+    if(item.refType==='cable'){
+      items.push({
+        type:'cable', tier:item.meta.tierName, qty:item.qty,
+        pricePerM:item.meta.pricePerM, subtotal:item.qty*item.meta.pricePerM
+      });
+    } else {
+      const p = getProduct(id);
+      items.push({
+        type:item.refType, name:p.name, qty:item.qty,
+        price:p.price, subtotal:+(p.price*item.qty).toFixed(0)
+      });
+    }
+  }
+  const t = computeTotals();
+  return {
+    orderNo: orderCounter, name, phone, address, homePhone,
+    grandTotal: t.grandUsd.toFixed(0), items
+  };
+}
+
+async function sendOrderToBot(payload){
+  if(!TELEGRAM_BACKEND_URL) return; // sozlanmagan — jim o'tkazamiz, WhatsApp/nusxalash yetarli
+  try{
+    const res = await fetch(TELEGRAM_BACKEND_URL.replace(/\/$/,'') + '/order', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(data.ok){ showToast('✅ Chek adminga Telegram orqali yuborildi'); }
+    else { showToast("⚠️ Botga yuborilmadi, WhatsApp orqali yuboring"); }
+  }catch(e){
+    showToast("⚠️ Bot serveriga ulanib bo'lmadi, WhatsApp orqali yuboring");
+  }
+}
+
+function submitOrder(){
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const address = document.getElementById('custAddress').value.trim();
+  const homePhone = document.getElementById('custHomePhone').value.trim();
+  if(!name || !phone || !address){
+    showToast("Ism, telefon va manzilni to'ldiring");
+    return;
+  }
+  lastChekText = buildChekText({name, phone, address, homePhone});
+  renderChekPaper({name, phone, address, homePhone});
+  sendOrderToBot(buildOrderPayload({name, phone, address, homePhone}));
+  closeOrderForm();
+  document.getElementById('chekOverlay').classList.add('show');
+}
+
+function buildChekText({name, phone, address, homePhone}){
+  orderCounter++;
+  const now = new Date();
+  const dt = now.toLocaleDateString('ru-RU')+' / '+now.toLocaleTimeString('ru-RU').slice(0,8);
+  let lines = [];
+  lines.push('Vodiy Kameralar');
+  lines.push('Andijon viloyati');
+  lines.push('----------------------------');
+  lines.push(`Chek No: ${orderCounter}    ${dt}`);
+  lines.push('----------------------------');
+  for(const [id,item] of Object.entries(state.cart)){
+    if(item.refType==='cable'){
+      lines.push(`Kabel (${item.meta.tierName})`);
+      lines.push(`  ${item.qty} m x ${item.meta.pricePerM.toLocaleString('ru-RU')} so'm = ${(item.qty*item.meta.pricePerM).toLocaleString('ru-RU')} so'm`);
+    } else {
+      const p = getProduct(id);
+      lines.push(`${item.qty}x ${p.name}`);
+      lines.push(`  a $${p.price} = $${(p.price*item.qty).toFixed(0)}`);
+    }
+  }
+  const t = computeTotals();
+  lines.push('----------------------------');
+  lines.push(`JAMI: $${t.grandUsd.toFixed(0)}`);
+  lines.push('----------------------------');
+  lines.push("MIJOZ MA'LUMOTLARI:");
+  lines.push(`Ism: ${name}`);
+  lines.push(`Telefon: ${phone}`);
+  if(homePhone) lines.push(`Uy telefoni: ${homePhone}`);
+  lines.push(`Manzil: ${address}`);
+  lines.push('----------------------------');
+  lines.push("To'lov: qilinmagan (operator bilan kelishiladi)");
+  return lines.join('\n');
+}
+
+function renderChekPaper({name, phone, address, homePhone}){
+  const t = computeTotals();
+  let rows = '';
+  for(const [id,item] of Object.entries(state.cart)){
+    if(item.refType==='cable'){
+      rows += `<div class="chek-row"><span>Kabel (${item.meta.tierName}) ${item.qty}m</span><span>${(item.qty*item.meta.pricePerM).toLocaleString('ru-RU')} so'm</span></div>`;
+    } else {
+      const p = getProduct(id);
+      rows += `<div class="chek-row"><span>${item.qty}x ${p.name}</span><span>$${(p.price*item.qty).toFixed(0)}</span></div>`;
+    }
+  }
+  document.getElementById('chekPaper').innerHTML = `
+    <div class="c shopname">Vodiy Kameralar</div>
+    <div class="c">Andijon viloyati</div>
+    <div class="line"></div>
+    <div class="chek-row"><span>Chek No: ${orderCounter}</span><span>${new Date().toLocaleDateString('ru-RU')}</span></div>
+    <div class="line"></div>
+    ${rows}
+    <div class="line"></div>
+    <div class="chek-row total"><span>JAMI</span><span>$${t.grandUsd.toFixed(0)}</span></div>
+    <div class="line"></div>
+    <div class="chek-section-title">Mijoz ma'lumotlari</div>
+    <div class="chek-row"><span>Ism</span><span>${name}</span></div>
+    <div class="chek-row"><span>Telefon</span><span>${phone}</span></div>
+    ${homePhone?`<div class="chek-row"><span>Uy tel.</span><span>${homePhone}</span></div>`:''}
+    <div class="chek-row"><span>Manzil</span><span style="text-align:right; max-width:60%;">${address}</span></div>
+    <div class="line"></div>
+    <div class="c" style="font-size:10.5px; color:#666;">To'lov qilinmagan — operator bog'lanadi</div>
+  `;
+}
+
+function closeChek(){ document.getElementById('chekOverlay').classList.remove('show'); }
+
+function sendWhatsapp(){
+  const url = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(lastChekText)}`;
+  window.open(url, '_blank');
+}
+function sendTelegram(){
+  window.open(`https://t.me/+${ADMIN_PHONE}`, '_blank');
+  showToast('Telegram ochildi — chek matnini joylashtirish uchun "Nusxalash" tugmasidan foydalaning');
+}
+function copyChek(){
+  navigator.clipboard.writeText(lastChekText).then(()=>{
+    showToast('Chek matni nusxalandi');
+  }).catch(()=>{
+    showToast("Nusxalab bo'lmadi, qo'lda ko'chiring");
+  });
+}
+
+/* ---------------- TABS / DRAWER / TOAST ---------------- */
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+function openCart(){ document.getElementById('drawer').classList.add('show'); document.getElementById('overlay').classList.add('show'); }
+function closeCart(){ document.getElementById('drawer').classList.remove('show'); document.getElementById('overlay').classList.remove('show'); }
+let toastTimer;
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+/* ---------------- ADMIN PANEL ---------------- */
+const ADMIN_PASSWORD = "vodiy2026"; // shu yerdan o'zgartiring — bu faqat oddiy front-end to'siq, real xavfsizlik uchun backend kerak
+let adminTab = 'cameras';
+let editingProduct = null; // {type:'cameras'|'accessories', id: string|null}
+let pendingImgData = null;
+
+function openAdminGate(){
+  document.getElementById('adminGateOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('adminPassInput').focus(), 100);
+}
+function closeAdminGate(){
+  document.getElementById('adminGateOverlay').classList.remove('show');
+  document.getElementById('adminPassInput').value = '';
+}
+function checkAdminPassword(){
+  const val = document.getElementById('adminPassInput').value;
+  if(val === ADMIN_PASSWORD){
+    closeAdminGate();
+    openAdminPanel();
+  } else {
+    showToast("Parol noto'g'ri");
+  }
+}
+function openAdminPanel(){
+  document.getElementById('adminPanelOverlay').classList.add('show');
+  switchAdminTab('cameras');
+}
+function closeAdminPanel(){
+  document.getElementById('adminPanelOverlay').classList.remove('show');
+}
+function switchAdminTab(tab){
+  adminTab = tab;
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.toggle('active', t.dataset.atab===tab));
+  renderAdminList();
+}
+function renderAdminList(){
+  const list = adminTab==='cameras' ? cameras : accessories;
+  const el = document.getElementById('adminList');
+  if(list.length===0){ el.innerHTML = `<div class="empty-cart">Mahsulot yo'q. "+ Yangi qo'shish" tugmasini bosing.</div>`; return; }
+  el.innerHTML = list.map(p=>{
+    const thumb = p.img ? `<img src="${p.img}" alt="">` : (adminTab==='cameras' ? camIcon(p.type, p.brand==='Hikvision'?'#28D67C':'#5BC8FF') : accIcon(p.acc));
+    const meta = adminTab==='cameras' ? `${p.brand} · ${p.mp}MP · $${p.price}` : `${p.acc} · $${p.price}`;
+    return `<div class="admin-row">
+      <div class="admin-thumb">${thumb}</div>
+      <div class="admin-row-info">
+        <div class="admin-row-name">${p.name}</div>
+        <div class="admin-row-meta">${meta}</div>
+      </div>
+      <div class="admin-row-actions">
+        <button class="admin-icon-btn" onclick="openProductForm('${p.id}')" title="Tahrirlash">✏️</button>
+        <button class="admin-icon-btn danger" onclick="quickDelete('${p.id}')" title="O'chirish">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function quickDelete(id){
+  const arr = adminTab==='cameras' ? cameras : accessories;
+  const idx = arr.findIndex(p=>p.id===id);
+  if(idx===-1) return;
+  if(!confirm(`"${arr[idx].name}" o'chirilsinmi?`)) return;
+  arr.splice(idx,1);
+  persistCatalog();
+  renderAdminList();
+  if(adminTab==='cameras') renderCameras(); else renderAccessories();
+  showToast("O'chirildi");
+}
+
+function openProductForm(id){
+  editingProduct = {type: adminTab, id};
+  pendingImgData = null;
+  document.getElementById('brandField').style.display = adminTab==='cameras' ? 'block':'none';
+  document.getElementById('mpField').style.display = adminTab==='cameras' ? 'block':'none';
+  document.getElementById('typeField').style.display = adminTab==='cameras' ? 'block':'none';
+  document.getElementById('accTypeField').style.display = adminTab==='accessories' ? 'block':'none';
+
+  if(id){
+    const arr = adminTab==='cameras' ? cameras : accessories;
+    const p = arr.find(x=>x.id===id);
+    document.getElementById('productFormTitle').textContent = "Mahsulotni tahrirlash";
+    document.getElementById('prodName').value = p.name || '';
+    document.getElementById('prodDesc').value = p.desc || '';
+    document.getElementById('prodPrice').value = p.price ?? '';
+    document.getElementById('prodImgUrl').value = (p.img && !p.img.startsWith('data:')) ? p.img : '';
+    pendingImgData = (p.img && p.img.startsWith('data:')) ? p.img : null;
+    updateImgPreview(p.img || null);
+    if(adminTab==='cameras'){
+      document.getElementById('prodBrand').value = p.brand || 'Hikvision';
+      document.getElementById('prodMp').value = String(p.mp || 2);
+      document.getElementById('prodType').value = p.type || 'dome';
+    } else {
+      document.getElementById('prodAccType').value = p.acc || 'other';
+    }
+    document.getElementById('deleteProductBtn').style.display = 'block';
+  } else {
+    document.getElementById('productFormTitle').textContent = "Yangi mahsulot";
+    document.getElementById('prodName').value = '';
+    document.getElementById('prodDesc').value = '';
+    document.getElementById('prodPrice').value = '';
+    document.getElementById('prodImgUrl').value = '';
+    updateImgPreview(null);
+    document.getElementById('deleteProductBtn').style.display = 'none';
+  }
+  document.getElementById('productFormOverlay').classList.add('show');
+}
+function closeProductForm(){
+  document.getElementById('productFormOverlay').classList.remove('show');
+}
+
+function updateImgPreview(src){
+  const el = document.getElementById('imgPreview');
+  el.innerHTML = src ? `<img src="${src}">` : "Rasm yo'q";
+}
+function handleImageUpload(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    pendingImgData = reader.result; // base64 data URL
+    document.getElementById('prodImgUrl').value = '';
+    updateImgPreview(pendingImgData);
+  };
+  reader.readAsDataURL(file);
+}
+function onImgUrlInput(){
+  const url = document.getElementById('prodImgUrl').value.trim();
+  if(url){ pendingImgData = null; updateImgPreview(url); }
+  else { updateImgPreview(pendingImgData); }
+}
+
+function saveProduct(){
+  const name = document.getElementById('prodName').value.trim();
+  const price = parseFloat(document.getElementById('prodPrice').value);
+  if(!name || isNaN(price)){ showToast("Nomi va narxini to'ldiring"); return; }
+  const desc = document.getElementById('prodDesc').value.trim();
+  const urlVal = document.getElementById('prodImgUrl').value.trim();
+  const img = pendingImgData || urlVal || null;
+
+  const type = editingProduct.type;
+  const arr = type==='cameras' ? cameras : accessories;
+  let id = editingProduct.id;
+
+  const base = {name, price, desc: desc || undefined, img: img || undefined};
+  if(type==='cameras'){
+    base.brand = document.getElementById('prodBrand').value;
+    base.mp = parseInt(document.getElementById('prodMp').value);
+    base.type = document.getElementById('prodType').value;
+  } else {
+    base.acc = document.getElementById('prodAccType').value;
+    base.spec = desc || '';
+  }
+
+  if(id){
+    const idx = arr.findIndex(p=>p.id===id);
+    arr[idx] = {...arr[idx], ...base};
+  } else {
+    id = (type==='cameras'?'cam_':'acc_') + Date.now().toString(36);
+    arr.push({id, ...base});
+  }
+
+  persistCatalog();
+  closeProductForm();
+  renderAdminList();
+  if(type==='cameras') renderCameras(); else renderAccessories();
+  showToast("Saqlandi");
+}
+function deleteCurrentProduct(){
+  if(!editingProduct || !editingProduct.id) return;
+  const arr = editingProduct.type==='cameras' ? cameras : accessories;
+  const idx = arr.findIndex(p=>p.id===editingProduct.id);
+  if(idx===-1) return;
+  if(!confirm(`"${arr[idx].name}" o'chirilsinmi?`)) return;
+  arr.splice(idx,1);
+  persistCatalog();
+  closeProductForm();
+  renderAdminList();
+  if(editingProduct.type==='cameras') renderCameras(); else renderAccessories();
+  showToast("O'chirildi");
+}
+
+function exportCatalog(){
+  const data = JSON.stringify({cameras, accessories}, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'vodiy-kameralar-katalog.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importCatalog(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      if(Array.isArray(data.cameras)) cameras = data.cameras;
+      if(Array.isArray(data.accessories)) accessories = data.accessories;
+      persistCatalog();
+      renderAdminList();
+      renderCameras(); renderAccessories();
+      showToast("Katalog import qilindi");
+    }catch(e){
+      showToast("Fayl noto'g'ri formatda");
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+/* ---------------- INIT ---------------- */
+renderCameras();
+renderAccessories();
+renderCable();
+updateCartUI();
+</script>
+</body>
+</html>
