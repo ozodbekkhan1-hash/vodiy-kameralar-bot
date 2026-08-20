@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Vodiy Kameralar — Hikvision / EZVIZ kameralar</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -411,7 +412,6 @@
       <input class="form-input" id="adminPassInput" type="password" placeholder="Parolni kiriting" onkeydown="if(event.key==='Enter') checkAdminPassword()">
     </div>
     <button class="submit-order-btn" onclick="checkAdminPassword()">Kirish</button>
-    <div class="form-note" style="margin-top:12px;">Standart parol: <b>vodiy2026</b>. Buni kodda <span class="mono">ADMIN_PASSWORD</span> o'zgaruvchisidan istalgan vaqt almashtirishingiz mumkin.</div>
   </div>
 </div>
 
@@ -843,13 +843,18 @@ const ADMIN_PHONE = "998977549898"; // +998 97 754 98 98
 // Bot orqali avtomatik yuborish uchun: /telegram-admin-bot papkasidagi serverni
 // joylashtirgach, manzilni shu yerga yozing. Bo'sh qoldirilsa, faqat
 // WhatsApp/Telegram-havola/nusxalash orqali yuborish ishlaydi.
-const TELEGRAM_BACKEND_URL = "";
+const TELEGRAM_BACKEND_URL = "https://vodiy-kameralar-bot.onrender.com";
 let lastChekText = "";
 let orderCounter = 4572;
 
 function checkout(){
   const entries = Object.entries(state.cart);
   if(entries.length===0){ showToast("Avval savatga mahsulot qo'shing"); return; }
+  hapticTap();
+  const nameInput = document.getElementById('custName');
+  if(!nameInput.value && tgUser){
+    nameInput.value = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ');
+  }
   document.getElementById('formOverlay').classList.add('show');
 }
 function closeOrderForm(){ document.getElementById('formOverlay').classList.remove('show'); }
@@ -900,7 +905,7 @@ async function sendOrderToBot(payload){
       body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if(data.ok){ showToast('✅ Chek adminga Telegram orqali yuborildi'); }
+    if(data.ok){ showToast('✅ Chek adminga Telegram orqali yuborildi'); hapticSuccess(); }
     else { showToast("⚠️ Botga yuborilmadi, WhatsApp orqali yuboring"); }
   }catch(e){
     showToast("⚠️ Bot serveriga ulanib bo'lmadi, WhatsApp orqali yuboring");
@@ -1023,7 +1028,7 @@ function showToast(msg){
 }
 
 /* ---------------- ADMIN PANEL ---------------- */
-const ADMIN_PASSWORD = "vodiy2026"; // shu yerdan o'zgartiring — bu faqat oddiy front-end to'siq, real xavfsizlik uchun backend kerak
+const ADMIN_PASSWORD = "Sardor.001"; // shu yerdan o'zgartiring — bu faqat oddiy front-end to'siq, real xavfsizlik uchun backend kerak
 let adminTab = 'cameras';
 let editingProduct = null; // {type:'cameras'|'accessories', id: string|null}
 let pendingImgData = null;
@@ -1230,6 +1235,32 @@ function importCatalog(evt){
   reader.readAsText(file);
   evt.target.value = '';
 }
+
+/* ---------------- TELEGRAM MINI APP INTEGRATSIYASI ---------------- */
+let tg = null;
+let tgUser = null;
+function initTelegramMiniApp(){
+  if(!(window.Telegram && window.Telegram.WebApp)) return; // oddiy brauzerda ochilgan bo'lsa — jim o'tamiz
+  tg = window.Telegram.WebApp;
+  try{
+    tg.ready();
+    tg.expand(); // to'liq ekranga yoyish
+    if(tg.setHeaderColor) tg.setHeaderColor('#0F2A43');
+    if(tg.setBackgroundColor) tg.setBackgroundColor(tg.themeParams?.bg_color || '#F3F5F7');
+    if(tg.disableVerticalSwipes) tg.disableVerticalSwipes(); // tasodifan yopilib qolmasin
+
+    // Mijoz Telegram profilidan ismini avtomatik olish (forma to'ldirishda qulaylik)
+    tgUser = tg.initDataUnsafe?.user || null;
+  }catch(e){ /* eski Telegram versiyasida ba'zi metodlar bo'lmasligi mumkin — muammo emas */ }
+}
+function hapticTap(){
+  try{ tg?.HapticFeedback?.impactOccurred('light'); }catch(e){}
+}
+function hapticSuccess(){
+  try{ tg?.HapticFeedback?.notificationOccurred('success'); }catch(e){}
+}
+
+initTelegramMiniApp();
 
 /* ---------------- INIT ---------------- */
 renderCameras();
