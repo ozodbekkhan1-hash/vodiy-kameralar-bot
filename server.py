@@ -48,6 +48,13 @@ log = logging.getLogger("vodiy-order-server")
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 ADMIN_CHAT_IDS = [c.strip() for c in os.environ.get("ADMIN_CHAT_IDS", "").split(",") if c.strip()]
 TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+TELEGRAM_SET_WEBHOOK = f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook"
+
+# Render.com bu o'zgaruvchini avtomatik beradi (masalan
+# https://vodiy-kameralar-bot.onrender.com). Boshqa hostingda ishlatsangiz,
+# PUBLIC_URL nomli environment variable qo'shib, shu manzilni qo'lda bering.
+PUBLIC_URL = os.environ.get("RENDER_EXTERNAL_URL") or os.environ.get("PUBLIC_URL", "")
+WEBHOOK_PATH = "/telegram-webhook"
 
 # Saytingiz qaysi domendan so'rov yuborishiga ruxsat berish (xavfsizlik uchun).
 # Ishlab chiqarishda "*" o'rniga aniq domeningizni yozing, masalan:
@@ -100,6 +107,71 @@ def build_message(data: dict) -> str:
     lines.append("")
     lines.append("💰 To'lov: <b>qilinmagan</b> — operator mijoz bilan bog'lanishi kerak")
     return "\n".join(lines)
+
+
+async def send_message(chat_id, text: str):
+    async with ClientSession() as session:
+        payload = {"chat_id": chat_id, "text": text, "parse_mode": "HTML"}
+        try:
+            async with session.post(TELEGRAM_API, json=payload, timeout=10) as resp:
+                return await resp.json()
+        except Exception as e:
+            log.exception("send_message xato: %s", e)
+            return {"ok": False, "error": str(e)}
+
+
+STATUS_MESSAGE = (
+    "✅ <b>Bot ishlamoqda!</b>\n\n"
+    "Bu bot \"Vodiy Kameralar\" saytidan kelgan yangi buyurtmalarni sizga "
+    "avtomatik yuboradi. Hech qanday qo'shimcha amal bajarish shart emas — "
+    "mijoz saytda buyurtma bersa, chek shu chatga o'zi keladi.\n\n"
+    "Boshqa buyruqlar hozircha yo'q, bot faqat xabar yetkazish uchun ishlaydi."
+)
+
+
+async def handle_telegram_webhook(request: web.Request) -> web.Response:
+    """Telegram'dan kelgan yangilanishlarni (masalan /start) qabul qiladi."""
+    try:
+        update = await request.json()
+    except Exception:
+        return web.json_response({"ok": False}, status=400)
+
+    message = update.get("message") or update.get("edited_message")
+    if message:
+        chat_id = message.get("chat", {}).get("id")
+        text = (message.get("text") or "").strip()
+        if chat_id:
+            if text.startswith("/start"):
+                await send_message(chat_id, STATUS_MESSAGE)
+            else:
+                await send_message(
+                    chat_id,
+                    "ℹ️ Bu bot faqat saytdan kelgan buyurtma xabarlarini yetkazadi, "
+                    "yozishma funksiyasi yo'q. Holatni tekshirish uchun /start yozing.",
+                )
+
+    return web.json_response({"ok": True})
+
+
+async def setup_webhook(app: web.Application):
+    """Server ishga tushganda Telegram'ga: 'yangilanishlarni shu manzilga yubor' deb aytadi."""
+    if not BOT_TOKEN:
+        log.warning("BOT_TOKEN yo'q — webhook sozlanmadi.")
+        return
+    if not PUBLIC_URL:
+        log.warning(
+            "PUBLIC_URL aniqlanmadi — /start webhook sozlanmadi. "
+            "Render'da bu odatda avtomatik keladi (RENDER_EXTERNAL_URL)."
+        )
+        return
+    url = PUBLIC_URL.rstrip("/") + WEBHOOK_PATH
+    async with ClientSession() as session:
+        try:
+            async with session.post(TELEGRAM_SET_WEBHOOK, json={"url": url}, timeout=10) as resp:
+                body = await resp.json()
+                log.info("setWebhook(%s) -> %s", url, body)
+        except Exception as e:
+            log.exception("setWebhook xato: %s", e)
 
 
 async def handle_order(request: web.Request) -> web.Response:
@@ -158,6 +230,8 @@ def create_app() -> web.Application:
     app.router.add_get("/", handle_root)
     app.router.add_post("/order", handle_order)
     app.router.add_options("/order", lambda r: web.Response())
+    app.router.add_post(WEBHOOK_PATH, handle_telegram_webhook)
+    app.on_startup.append(setup_webhook)
     return app
 
 
